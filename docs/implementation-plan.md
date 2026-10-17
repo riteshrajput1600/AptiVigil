@@ -1,0 +1,5 @@
+# Implementation plan
+
+The assignable dependency-ordered backlog is maintained in [developer-stories.md](./developer-stories.md). It breaks the supplied architecture into solo-developer stories sized for approximately 2–3 focused days, with prerequisites and acceptance outcomes.
+
+The full scope includes MCQ, essay and coding exams, seven role portals, a public marketing/customer-acquisition app with Home, Services, Packages, Contact and Login pages, sales-led customer onboarding (no public registration), secure account/exam invitations, per-candidate exam analytics, purchase/subscription flows, security, proctoring, review, integrations and production operations. Code execution is in scope but has a sandbox security gate before candidate submissions can run. Payment providers may charge transaction fees even when all application code is open source; the platform will use hosted checkout and will not store card details. Email must never contain a permanent password; use central SSO or a scoped, expiring, single-use activation link.

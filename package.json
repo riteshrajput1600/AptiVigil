@@ -1,0 +1,26 @@
+{
+  "name": "aptivigil",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write .",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "infra:up": "bash scripts/infra-up.sh",
+    "infra:down": "bash scripts/infra-down.sh",
+    "setup:local": "bash scripts/dev-setup.sh"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "prisma": "^6.8.2",
+    "turbo": "^2.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.0",
+    "@prisma/client": "^6.8.2"
+  }
+}

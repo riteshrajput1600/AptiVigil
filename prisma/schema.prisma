@@ -1,0 +1,473 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QuestionType {
+  MCQ_SINGLE
+  MCQ_MULTI
+  ESSAY
+  CODE
+}
+
+enum QuestionLifecycle {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  RETIRED
+}
+
+enum AttemptStatus {
+  READY
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  VOIDED
+}
+
+enum CodingRunStatus {
+  QUEUED
+  RUNNING
+  PASSED
+  FAILED
+  TIMED_OUT
+  RESOURCE_LIMIT
+  ERROR
+}
+
+enum ReviewDecision {
+  CONFIRMED
+  DISMISSED
+  INCONCLUSIVE
+  ESCALATED
+}
+
+enum EvidenceStatus {
+  PENDING
+  AVAILABLE
+  EXPIRED
+  DELETED
+}
+
+enum ProctoringSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Organization {
+  id          String               @id @default(uuid()) @db.Uuid
+  name        String
+  status      String               @default("active")
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  members     OrganizationMember[]
+  exams       Exam[]
+  candidates  Candidate[]
+  questionBanks QuestionBank[]
+  assignments CandidateAssignment[]
+  auditLogs   AuditLog[]
+
+  @@map("organizations")
+}
+
+model User {
+  id          String               @id @default(uuid()) @db.Uuid
+  email       String               @unique
+  displayName String
+  status      String               @default("active")
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  memberships OrganizationMember[]
+
+  @@map("users")
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  userId         String       @db.Uuid
+  role           String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, role])
+  @@map("organization_members")
+}
+
+model Candidate {
+  id             String                @id @default(uuid()) @db.Uuid
+  organizationId String                @db.Uuid
+  externalId     String?
+  email          String?
+  displayName    String?
+  createdAt      DateTime              @default(now())
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignments    CandidateAssignment[]
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, externalId])
+  @@index([organizationId, email])
+  @@map("candidates")
+}
+
+model QuestionBank {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @db.Uuid
+  name           String
+  description    String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  questions      Question[]
+
+  @@unique([organizationId, id])
+  @@index([organizationId, name])
+  @@map("question_banks")
+}
+
+model Question {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  bankId         String           @db.Uuid
+  status         QuestionLifecycle @default(DRAFT)
+  currentVersion Int              @default(1)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  bank           QuestionBank     @relation(fields: [organizationId, bankId], references: [organizationId, id], onDelete: Cascade)
+  versions       QuestionVersion[]
+
+  @@unique([organizationId, id])
+  @@index([organizationId, bankId, status])
+  @@map("questions")
+}
+
+model QuestionVersion {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  questionId     String            @db.Uuid
+  version        Int
+  type           QuestionType
+  lifecycle      QuestionLifecycle @default(DRAFT)
+  prompt         Json
+  options        Json?
+  answerKey      Json?
+  gradingRubric  Json?
+  codeSpec       Json?
+  maxScore       Decimal           @db.Decimal(10, 2)
+  tags           String[]          @default([])
+  difficulty     Int?
+  skill          String?
+  createdAt      DateTime          @default(now())
+  question       Question          @relation(fields: [organizationId, questionId], references: [organizationId, id], onDelete: Cascade)
+  examItems      ExamVersionItem[]
+
+  @@unique([organizationId, id])
+  @@unique([questionId, version])
+  @@index([organizationId, type, lifecycle])
+  @@map("question_versions")
+}
+
+model Exam {
+  id             String                @id @default(uuid()) @db.Uuid
+  organizationId String                @db.Uuid
+  title          String
+  status         ExamStatus            @default(DRAFT)
+  currentVersion Int                   @default(1)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions       ExamVersion[]
+  assignments    CandidateAssignment[]
+
+  @@unique([organizationId, id])
+  @@index([organizationId, status])
+  @@map("exams")
+}
+
+model ExamVersion {
+  id             String                @id @default(uuid()) @db.Uuid
+  organizationId String                @db.Uuid
+  examId         String                @db.Uuid
+  version        Int
+  lifecycle      ExamStatus            @default(DRAFT)
+  durationSeconds Int
+  availableFrom  DateTime?
+  availableUntil DateTime?
+  policy         Json
+  settings       Json                  @default("{}")
+  createdAt      DateTime              @default(now())
+  publishedAt    DateTime?
+  exam           Exam                  @relation(fields: [organizationId, examId], references: [organizationId, id], onDelete: Cascade)
+  sections       ExamSection[]
+  attempts       Attempt[]
+  assignments    CandidateAssignment[]
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, examId, id])
+  @@unique([examId, version])
+  @@index([organizationId, lifecycle])
+  @@map("exam_versions")
+}
+
+model ExamSection {
+  id              String            @id @default(uuid()) @db.Uuid
+  organizationId  String            @db.Uuid
+  examVersionId   String            @db.Uuid
+  title           String
+  instructions    String?
+  sequence        Int
+  timeLimitSeconds Int?
+  blueprint       Json?
+  examVersion     ExamVersion       @relation(fields: [organizationId, examVersionId], references: [organizationId, id], onDelete: Cascade)
+  items           ExamVersionItem[]
+
+  @@unique([organizationId, id])
+  @@unique([examVersionId, sequence])
+  @@map("exam_sections")
+}
+
+model ExamVersionItem {
+  id                String         @id @default(uuid()) @db.Uuid
+  organizationId    String         @db.Uuid
+  sectionId         String         @db.Uuid
+  questionVersionId String         @db.Uuid
+  sequence          Int
+  points            Decimal        @db.Decimal(10, 2)
+  required          Boolean        @default(true)
+  examSection       ExamSection    @relation(fields: [organizationId, sectionId], references: [organizationId, id], onDelete: Cascade)
+  questionVersion   QuestionVersion @relation(fields: [organizationId, questionVersionId], references: [organizationId, id], onDelete: Restrict)
+  answers           AttemptAnswer[]
+
+  @@unique([organizationId, id])
+  @@unique([sectionId, sequence])
+  @@index([organizationId, questionVersionId])
+  @@map("exam_version_items")
+}
+
+model CandidateAssignment {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @db.Uuid
+  candidateId    String     @db.Uuid
+  examId         String     @db.Uuid
+  examVersionId  String     @db.Uuid
+  scheduledAt    DateTime?
+  windowClosesAt DateTime?
+  createdAt      DateTime   @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  candidate      Candidate  @relation(fields: [organizationId, candidateId], references: [organizationId, id], onDelete: Cascade)
+  exam           Exam       @relation(fields: [organizationId, examId], references: [organizationId, id], onDelete: Cascade)
+  examVersion    ExamVersion @relation(fields: [organizationId, examId, examVersionId], references: [organizationId, examId, id], onDelete: Restrict)
+  attempts       Attempt[]
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, id, examVersionId])
+  @@index([organizationId, examId, scheduledAt])
+  @@index([organizationId, candidateId])
+  @@map("candidate_assignments")
+}
+
+model Attempt {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @db.Uuid
+  assignmentId   String              @db.Uuid
+  examVersionId  String              @db.Uuid
+  status         AttemptStatus       @default(READY)
+  startedAt      DateTime?
+  submittedAt    DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime            @default(now())
+  assignment     CandidateAssignment @relation(fields: [organizationId, assignmentId, examVersionId], references: [organizationId, id, examVersionId], onDelete: Cascade)
+  examVersion    ExamVersion         @relation(fields: [organizationId, examVersionId], references: [organizationId, id], onDelete: Restrict)
+  answers        AttemptAnswer[]
+  sessions       ProctoringSession[]
+  events         ProctoringEvent[]
+  evidence       Evidence[]
+  reviewCases    ReviewCase[]
+  results        ResultVersion[]
+
+  @@unique([organizationId, id])
+  @@index([organizationId, status, expiresAt])
+  @@map("attempts")
+}
+
+model AttemptAnswer {
+  id                String          @id @default(uuid()) @db.Uuid
+  organizationId    String          @db.Uuid
+  attemptId         String          @db.Uuid
+  examVersionItemId String          @db.Uuid
+  response          Json
+  revision          Int             @default(1)
+  idempotencyKey    String
+  savedAt           DateTime        @default(now())
+  gradedAt          DateTime?
+  pointsAwarded     Decimal?        @db.Decimal(10, 2)
+  graderId          String?
+  attempt           Attempt         @relation(fields: [organizationId, attemptId], references: [organizationId, id], onDelete: Cascade)
+  examItem          ExamVersionItem @relation(fields: [organizationId, examVersionItemId], references: [organizationId, id], onDelete: Restrict)
+  codingRuns        CodingRun[]
+
+  @@unique([attemptId, examVersionItemId])
+  @@unique([attemptId, idempotencyKey])
+  @@unique([organizationId, id])
+  @@index([organizationId, attemptId, savedAt])
+  @@map("attempt_answers")
+}
+
+model CodingRun {
+  id                 String          @id @default(uuid()) @db.Uuid
+  organizationId     String          @db.Uuid
+  attemptAnswerId    String          @db.Uuid
+  submissionNumber  Int
+  language           String
+  runtimeVersion     String
+  sourceCode         String
+  status             CodingRunStatus @default(QUEUED)
+  result             Json?
+  queueJobId         String?         @unique
+  createdAt          DateTime        @default(now())
+  completedAt        DateTime?
+  answer             AttemptAnswer   @relation(fields: [organizationId, attemptAnswerId], references: [organizationId, id], onDelete: Cascade)
+
+  @@unique([attemptAnswerId, submissionNumber])
+  @@index([organizationId, status, createdAt])
+  @@map("coding_runs")
+}
+
+model ProctoringSession {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  attemptId      String             @db.Uuid
+  status         String             @default("ACTIVE")
+  startedAt      DateTime           @default(now())
+  endedAt        DateTime?
+  attempt        Attempt            @relation(fields: [organizationId, attemptId], references: [organizationId, id], onDelete: Cascade)
+  events         ProctoringEvent[]
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, id, attemptId])
+  @@index([organizationId, attemptId, status])
+  @@map("proctoring_sessions")
+}
+
+model ProctoringEvent {
+  id              String             @id @default(uuid()) @db.Uuid
+  organizationId  String             @db.Uuid
+  eventId         String
+  attemptId       String             @db.Uuid
+  sessionId       String             @db.Uuid
+  type            String
+  occurredAt      DateTime
+  clientTimestamp DateTime?
+  receivedAt      DateTime           @default(now())
+  sequence        Int
+  confidence      Float?
+  severity        ProctoringSeverity
+  source          String
+  modelVersion    String?
+  ruleVersion     String?
+  metadata        Json?
+  evidenceRef     String?
+  attempt         Attempt            @relation(fields: [organizationId, attemptId], references: [organizationId, id], onDelete: Cascade)
+  session         ProctoringSession  @relation(fields: [organizationId, sessionId, attemptId], references: [organizationId, id, attemptId], onDelete: Cascade)
+
+  @@unique([organizationId, eventId])
+  @@unique([sessionId, sequence])
+  @@index([organizationId, attemptId, occurredAt])
+  @@map("proctoring_events")
+}
+
+model Evidence {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  attemptId      String         @db.Uuid
+  objectKey      String         @unique
+  checksum       String?
+  contentType    String
+  status         EvidenceStatus @default(PENDING)
+  retentionUntil DateTime?
+  createdAt      DateTime       @default(now())
+  attempt        Attempt        @relation(fields: [organizationId, attemptId], references: [organizationId, id], onDelete: Cascade)
+
+  @@unique([organizationId, id])
+  @@index([organizationId, retentionUntil])
+  @@map("evidence")
+}
+
+model ReviewCase {
+  id                 String                 @id @default(uuid()) @db.Uuid
+  organizationId     String                 @db.Uuid
+  attemptId          String                 @db.Uuid
+  status             String                 @default("OPEN")
+  assignedReviewerId String?
+  createdAt          DateTime               @default(now())
+  attempt            Attempt                @relation(fields: [organizationId, attemptId], references: [organizationId, id], onDelete: Cascade)
+  decisions          ReviewDecisionRecord[]
+
+  @@unique([organizationId, id])
+  @@index([organizationId, status, createdAt])
+  @@map("review_cases")
+}
+
+model ReviewDecisionRecord {
+  id              String         @id @default(uuid()) @db.Uuid
+  organizationId  String         @db.Uuid
+  caseId          String         @db.Uuid
+  reviewerId      String
+  decision        ReviewDecision
+  reason          String
+  notes           String?
+  createdAt       DateTime       @default(now())
+  reviewCase      ReviewCase     @relation(fields: [organizationId, caseId], references: [organizationId, id], onDelete: Cascade)
+
+  @@index([organizationId, caseId, createdAt])
+  @@map("review_decisions")
+}
+
+model ResultVersion {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  attemptId      String   @db.Uuid
+  version        Int
+  totalScore     Decimal  @db.Decimal(10, 2)
+  maximumScore   Decimal  @db.Decimal(10, 2)
+  breakdown      Json
+  releasedAt     DateTime?
+  createdAt      DateTime @default(now())
+  attempt        Attempt  @relation(fields: [organizationId, attemptId], references: [organizationId, id], onDelete: Cascade)
+
+  @@unique([attemptId, version])
+  @@index([organizationId, attemptId])
+  @@map("result_versions")
+}
+
+model AuditLog {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String?      @db.Uuid
+  actorId        String?
+  action         String
+  resourceType   String
+  resourceId     String?
+  reason         String?
+  metadata       Json?
+  occurredAt     DateTime     @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, occurredAt])
+  @@map("audit_logs")
+}
