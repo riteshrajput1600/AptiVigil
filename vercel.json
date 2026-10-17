@@ -1,0 +1,79 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "exam-manager": {
+      "root": "apps/exam-manager",
+      "framework": "nextjs"
+    },
+    "marketing": {
+      "root": "apps/marketing",
+      "framework": "nextjs"
+    },
+    "organization-admin": {
+      "root": "apps/organization-admin",
+      "framework": "nextjs"
+    },
+    "proctor": {
+      "root": "apps/proctor",
+      "framework": "nextjs"
+    },
+    "reviewer": {
+      "root": "apps/reviewer",
+      "framework": "nextjs"
+    },
+    "student": {
+      "root": "apps/student",
+      "framework": "nextjs"
+    },
+    "super-admin": {
+      "root": "apps/super-admin",
+      "framework": "nextjs"
+    },
+    "support-admin": {
+      "root": "apps/support-admin",
+      "framework": "nextjs"
+    },
+    "api": {
+      "root": "backend/api",
+      "framework": "nestjs"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": { "service": "api" }
+    },
+    {
+      "source": "/student/:path*",
+      "destination": { "service": "student" }
+    },
+    {
+      "source": "/organization-admin/:path*",
+      "destination": { "service": "organization-admin" }
+    },
+    {
+      "source": "/exam-manager/:path*",
+      "destination": { "service": "exam-manager" }
+    },
+    {
+      "source": "/proctor/:path*",
+      "destination": { "service": "proctor" }
+    },
+    {
+      "source": "/reviewer/:path*",
+      "destination": { "service": "reviewer" }
+    },
+    {
+      "source": "/support-admin/:path*",
+      "destination": { "service": "support-admin" }
+    },
+    {
+      "source": "/super-admin/:path*",
+      "destination": { "service": "super-admin" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "marketing" }
+    }
+  ]
+}

@@ -2,17 +2,33 @@
 
 import { useState, type FormEvent } from 'react';
 
-const portalUrls: Record<string, string> = {
-  student: process.env.NEXT_PUBLIC_STUDENT_PORTAL_URL ?? 'http://localhost:3000',
-  'organization-admin': process.env.NEXT_PUBLIC_ORGANIZATION_ADMIN_PORTAL_URL ?? 'http://localhost:3001',
-  'exam-manager': process.env.NEXT_PUBLIC_EXAM_MANAGER_PORTAL_URL ?? 'http://localhost:3002',
-  proctor: process.env.NEXT_PUBLIC_PROCTOR_PORTAL_URL ?? 'http://localhost:3003',
-  reviewer: process.env.NEXT_PUBLIC_REVIEWER_PORTAL_URL ?? 'http://localhost:3004',
-  'support-admin': process.env.NEXT_PUBLIC_SUPPORT_ADMIN_PORTAL_URL ?? 'http://localhost:3005',
-  'super-admin': process.env.NEXT_PUBLIC_SUPER_ADMIN_PORTAL_URL ?? 'http://localhost:3006',
+const portalDestinations: Record<string, { env?: string; path: string; port: number }> = {
+  student: { env: process.env.NEXT_PUBLIC_STUDENT_PORTAL_URL, path: '/student', port: 3000 },
+  'organization-admin': { env: process.env.NEXT_PUBLIC_ORGANIZATION_ADMIN_PORTAL_URL, path: '/organization-admin', port: 3001 },
+  'exam-manager': { env: process.env.NEXT_PUBLIC_EXAM_MANAGER_PORTAL_URL, path: '/exam-manager', port: 3002 },
+  proctor: { env: process.env.NEXT_PUBLIC_PROCTOR_PORTAL_URL, path: '/proctor', port: 3003 },
+  reviewer: { env: process.env.NEXT_PUBLIC_REVIEWER_PORTAL_URL, path: '/reviewer', port: 3004 },
+  'support-admin': { env: process.env.NEXT_PUBLIC_SUPPORT_ADMIN_PORTAL_URL, path: '/support-admin', port: 3005 },
+  'super-admin': { env: process.env.NEXT_PUBLIC_SUPER_ADMIN_PORTAL_URL, path: '/super-admin', port: 3006 },
 };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+function portalUrlFor(role: string) {
+  const destination = portalDestinations[role];
+  if (!destination) return undefined;
+  if (destination.env) return destination.env;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return `http://localhost:${destination.port}`;
+  }
+  return destination.path;
+}
+
+function apiBaseUrl() {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:4000/api/v1';
+  }
+  return '/api/v1';
+}
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -25,7 +41,7 @@ export function LoginForm() {
 
     const form = new FormData(event.currentTarget);
     try {
-      const response = await fetch(`${apiUrl}/auth/login`, {
+      const response = await fetch(`${apiBaseUrl()}/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -49,7 +65,7 @@ export function LoginForm() {
       }
 
       const result: { role?: string } = await response.json();
-      const portalUrl = result.role ? portalUrls[result.role] : undefined;
+      const portalUrl = result.role ? portalUrlFor(result.role) : undefined;
       if (!portalUrl) {
         setError('Your account has no active portal role. Contact your organization administrator.');
         return;
