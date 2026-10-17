@@ -1,2 +1,10 @@
-const items = ['Assigned cases', 'Evidence timeline', 'Review decisions', 'Appeals'];
-export default function Home() { return <main className="shell"><aside className="rail"><div className="brand">AptiVigil</div><div className="role">Reviewer</div>{items.map((item) => <div className="nav" key={item}>{item}</div>)}<div className="railFoot">LOCAL DEVELOPMENT</div></aside><section className="content"><header><div><span className="eyebrow">ASSESSMENT OPERATIONS</span><h1>Reviewer workspace</h1><p>Secure exams, clear workflows, accountable decisions.</p></div><div className="avatar">RE</div></header><div className="banner"><div><span className="eyebrow">PLATFORM STATUS</span><h2>Workspace is ready</h2><p>This portal is connected to the shared platform foundation.</p></div><span className="status"><i/> All systems operational</span></div><div className="sectionTitle"><div><span className="eyebrow">QUICK ACCESS</span><h2>Your workspace</h2></div><span className="muted">Role scoped</span></div><div className="grid">{items.map((item, index) => <article className="card" key={item}><div className="cardTop"><span className="icon">{['01','02','03','04'][index]}</span><span className="arrow">↗</span></div><h3>{item}</h3><p>Open the {item.toLowerCase()} workflow and continue your work.</p></article>)}</div><footer>AptiVigil <span>•</span> Local development foundation</footer></section></main>; }
+import { WorkspaceHome } from '@aptivigil/ui';
+
+export default function Home() {
+  return <WorkspaceHome role="Reviewer" initials="RE" items={[
+    { label: "Assigned cases", description: "Open cases assigned for independent review." },
+    { label: "Evidence timeline", description: "Review available evidence in chronological context." },
+    { label: "Review decisions", description: "Record reasoned review outcomes." },
+    { label: "Appeals", description: "Track appeals and their independent review." },
+  ]} />;
+}

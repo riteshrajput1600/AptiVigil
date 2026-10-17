@@ -1,108 +1,87 @@
 import Link from 'next/link';
+import { SiteFooter } from './components/site-footer';
+import { SiteHeader } from './components/site-header';
 
-const modules = [
-  {
-    number: '01',
-    title: 'Assessment authoring',
-    text: 'Build exams with multiple-choice, essay and coding questions in one workflow.',
-  },
-  {
-    number: '02',
-    title: 'Exam delivery',
-    text: 'Schedule candidates, deliver accessible exams and track saved work and readiness.',
-  },
-  {
-    number: '03',
-    title: 'Proctoring and review',
-    text: 'Use policy-based browser signals, optional media checks and human review workflows.',
-  },
+const capabilities = [
+  { number: '01', title: 'Assessments and interviews', text: 'Bring MCQ, written-response, structured interview and coding interview workflows into one organization-led platform.' },
+  { number: '02', title: 'Multimodal integrity signals', text: 'Bring browser activity together with planned face, multiple-person, attention, voice-activity and phone/object signals—configured for each exam policy.' },
+  { number: '03', title: 'Human-reviewed evidence', text: 'Give exam teams a candidate timeline, signal context and review workflow so an AI flag supports an investigation instead of deciding misconduct.' },
 ];
 
 export default function MarketingHome() {
   return (
     <main>
-      <nav className="nav wrap" aria-label="Main navigation">
-        <Link className="wordmark" href="/" aria-label="AptiVigil home">
-          <span className="mark">A</span> AptiVigil
-        </Link>
-        <div className="navLinks">
-          <a href="#platform">Platform</a>
-          <Link href="/packages">Packages</Link>
-          <a href="#about">About</a>
-        </div>
-        <div className="navActions">
-          <Link className="loginLink" href="/login">Log in</Link>
-          <Link className="button buttonSmall" href="/packages">Explore packages</Link>
-        </div>
-      </nav>
-
+      <SiteHeader current="platform" />
       <section className="hero wrap">
         <div className="heroCopy">
-          <span className="eyebrow"><span className="eyebrowDot" /> ASSESSMENT, BUILT FOR TRUST</span>
-          <h1>Better exams begin with <em>better systems.</em></h1>
-          <p className="heroText">
-            Create, deliver and review online assessments from one platform—with the controls and
-            human oversight serious exams need.
-          </p>
+          <span className="eyebrow"><span className="eyebrowDot" /> AI-ASSISTED ASSESSMENTS & INTERVIEWS</span>
+          <h1 className="heroTitle"><span className="block">AI-powered exams</span><span className="block">and <em>interviews.</em></span></h1>
+          <p className="heroText">AptiVigil is being built for exams, structured interviews and coding interviews—with candidate identity checks, AI-assisted monitoring and human-reviewed evidence in one organization-led workflow.</p>
           <div className="heroActions">
-            <Link className="button" href="/packages">Explore the platform <span>↗</span></Link>
-            <Link className="textButton" href="/login">Customer login <span>→</span></Link>
+            <Link className="button" href="/contact">Talk to our team <span>↗</span></Link>
+            <Link className="textButton" href="/services">Explore the platform <span>→</span></Link>
           </div>
-          <p className="heroNote">MCQ · Essay · Coding · Proctoring · Review</p>
+          <p className="heroNote">MCQ · Essay · Coding interviews · AI proctoring · Human review</p>
         </div>
-        <div className="heroVisual" aria-label="Illustration of an online exam dashboard" role="img">
+        <div className="heroVisual" aria-label="Illustrative preview of an exam operations dashboard" role="img">
           <div className="visualGlow" />
           <div className="dashCard">
-            <div className="dashTop"><span className="dashBrand"><i /> EXAM OPERATIONS</span><span className="live">DEMO VIEW</span></div>
-            <div className="dashTitle">Exam readiness</div>
+            <div className="dashTop"><span className="dashBrand"><i /> APTIVIGIL · EXAM OPERATIONS</span><span className="live">CONCEPT PREVIEW</span></div>
+            <div className="dashTitle">Exam overview</div>
             <div className="dashSub">Biology assessment · Cohort A</div>
             <div className="metricRow">
-              <div className="metric"><strong>128</strong><span>Assigned</span></div>
-              <div className="metric"><strong>96</strong><span>Ready</span></div>
-              <div className="metric"><strong>08</strong><span>In progress</span></div>
+              <div className="metric"><strong>128</strong><span>Assigned · sample</span></div>
+              <div className="metric"><strong>96</strong><span>Ready · sample</span></div>
+              <div className="metric"><strong>08</strong><span>In progress · sample</span></div>
             </div>
-            <div className="progressLabel"><span>Session readiness</span><b>75%</b></div>
+            <div className="progressLabel"><span>Illustrative preview data</span><b>Not live results</b></div>
             <div className="progress"><i /></div>
-            <div className="candidateRow"><span className="candidateAvatar">AR</span><div><b>Candidate session</b><small>Camera and microphone ready</small></div><span className="check">✓</span></div>
-            <div className="candidateRow"><span className="candidateAvatar alt">MK</span><div><b>Candidate session</b><small>Identity check needs review</small></div><span className="review">Review</span></div>
+            <div className="candidateRow"><span className="candidateAvatar">01</span><div><b>Candidate experience</b><small>Clear instructions and exam access</small></div><span className="check">✓</span></div>
+            <div className="candidateRow"><span className="candidateAvatar alt">02</span><div><b>Review queue</b><small>Signals are reviewed in context</small></div><span className="review">Human-led</span></div>
           </div>
-          <div className="floatingTag"><span>✓</span> Human-reviewed decisions</div>
+          <div className="floatingTag"><span>✓</span> Decisions stay reviewable</div>
         </div>
       </section>
 
-      <section className="trustStrip">
-        <div className="wrap trustInner"><span>ONE WORKSPACE FOR</span><b>ASSESSMENTS</b><i /> <b>CODING EXAMS</b><i /> <b>PROCTORING</b><i /> <b>REVIEW</b></div>
+      <section className="trustStrip" aria-label="Platform areas">
+        <div className="wrap trustInner"><span>ONE CONNECTED WORKFLOW</span><b>ASSESSMENTS</b><i /> <b>INTERVIEWS</b><i /> <b>CODING</b><i /> <b>MONITORING</b><i /> <b>REVIEW</b></div>
       </section>
 
       <section className="platform wrap" id="platform">
         <div className="sectionIntro">
-          <div><span className="eyebrow">THE PLATFORM</span><h2>Everything your exam needs.<br /><em>Connected by design.</em></h2></div>
-          <p>Choose the capabilities that fit your exam process. Policies and permissions keep each organization in control.</p>
+          <div><span className="eyebrow">THE APTIVIGIL APPROACH</span><h2>From exam setup to final review.<br /><em>One clear process.</em></h2></div>
+          <p>Configure MCQ and written-response exams, structured and coding interviews, identity checks, AI-assisted monitoring signals and review trails around your organization’s policy.</p>
         </div>
         <div className="moduleGrid">
-          {modules.map((module) => (
-            <article className="moduleCard" key={module.number}>
-              <span className="moduleNum">{module.number}</span>
-              <h3>{module.title}</h3>
-              <p>{module.text}</p>
-              <span className="moduleArrow">↗</span>
+          {capabilities.map((item) => (
+            <article className="moduleCard" key={item.number}>
+              <span className="moduleNum">{item.number}</span>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+              <span className="moduleArrow" aria-hidden="true">↗</span>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="packageCta" id="about">
-        <div className="wrap ctaInner">
-          <div><span className="eyebrow">FIND YOUR FIT</span><h2>Explore packages for your team.</h2><p>Compare platform capabilities and choose a path that matches your assessment program.</p></div>
-          <Link className="button buttonLight" href="/packages">View packages <span>↗</span></Link>
+      <section className="principlesSection">
+        <div className="wrap principlesInner">
+          <div><span className="eyebrow">A RESPONSIBLE FOUNDATION</span><h2>Monitoring should support a fair process.</h2></div>
+          <div className="principleList">
+            <p><span>01</span> Face, voice, attention and object detections are review signals; they do not prove misconduct on their own.</p>
+            <p><span>02</span> Organizations define exam policies and communicate them to candidates.</p>
+            <p><span>03</span> A standard website cannot see which other apps are running on a candidate’s device.</p>
+          </div>
         </div>
       </section>
 
-      <footer className="footer wrap">
-        <Link className="wordmark" href="/"><span className="mark">A</span> AptiVigil</Link>
-        <span>Assessments with clarity, control and care.</span>
-        <div><Link href="/packages">Packages</Link><Link href="/login">Customer login</Link><Link href="/packages">Plans</Link></div>
-      </footer>
+      <section className="packageCta">
+        <div className="wrap ctaInner">
+          <div><span className="eyebrow">FOR SCHOOLS AND ORGANIZATIONS</span><h2>Plan an exam program with our team.</h2><p>Tell us what you assess and what your team needs to oversee.</p></div>
+          <Link className="button buttonLight" href="/contact">Request a demo <span>↗</span></Link>
+        </div>
+      </section>
+      <SiteFooter />
     </main>
   );
 }

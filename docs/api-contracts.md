@@ -1,9 +1,11 @@
 # API contract boundaries
 
-All routes are versioned under /api/v1. Every route except health and identity callback routes requires a verified session. Tenant scope is resolved from authenticated membership and resource ownership; request bodies do not authorize tenant access. Resource IDs are checked together with tenant and assignment scope.
+All routes are versioned under /api/v1. Every route except health, login and identity callback routes requires a verified session. Tenant scope is resolved from authenticated membership and resource ownership; request bodies do not authorize tenant access. Resource IDs are checked together with tenant and assignment scope.
 
 ## Identity and organization
 
+- POST /auth/login: accepts an organization-issued login ID/email and password; verifies credentials server-side, applies rate limits, creates a secure HttpOnly session cookie and returns the account's authorized portal role. Invalid credentials use a generic response and never reveal whether an ID exists.
+- POST /auth/logout: revokes the current session and clears the session cookie.
 - GET /me: current identity, memberships and application permissions.
 - GET /organizations/:organizationId: requires active membership and organization-scoped permission.
 - Membership provisioning is a privileged audited operation; SSO and SCIM are integration modules, not portal-side shortcuts.

@@ -1,0 +1,1 @@
+{"name":"@aptivigil/workers","private":true,"scripts":{"typecheck":"tsc --noEmit"},"dependencies":{"@aptivigil/config":"workspace:*","dotenv":"^18.0.8"},"devDependencies":{"@types/node":"^22.15.0","typescript":"^5.8.0"}}

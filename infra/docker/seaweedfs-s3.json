@@ -1,0 +1,14 @@
+{
+  "identities": [
+    {
+      "name": "local-development",
+      "credentials": [
+        {
+          "accessKey": "aptivigil-local",
+          "secretKey": "aptivigil-local-secret"
+        }
+      ],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

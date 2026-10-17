@@ -4,9 +4,11 @@ This is the assignable backlog for the complete platform in the supplied enterpr
 
 ## Scope and source notes
 
-The source requires one monorepo, seven independent role portals, a public marketing/customer-acquisition app, a shared backend, tenant-isolated data, and separately deployable realtime, event-ingestion, worker, reporting, AI and code-runner services. Schools/organizations request a demo or contact the team; there is no public self-registration. Authorized staff provision the customer tenant and users, then send secure invitations. The public site is separate from the seven authenticated role portals. It also covers assessment authoring/delivery, evidence, human review, enterprise integrations, privacy, security, operations and production readiness.
+The source requires one monorepo, seven independent role portals, a public marketing/customer-acquisition app, a shared backend, tenant-isolated data, and separately deployable realtime, event-ingestion, worker, reporting, AI and code-runner services. Schools/organizations request a demo or contact the team; there is no public self-registration. Authorized staff provision the customer tenant and users, then send secure invitations. The public site is separate from the seven authenticated role portals. It also covers assessment authoring/delivery, evidence, human review, enterprise integrations, privacy, security, operations and production readiness. Product scope additionally includes structured interviews, live/video interviews and coding interviews for education, hiring, certification and other organization-led use cases; interview workflows are first-class alongside exams, not a separate product.
 
 All question families are in scope: single/multi-select MCQ, essay and coding. Coding authoring and candidate UX are designed from the start; code execution must stay disabled until the isolated runner stories are complete and reviewed. The source release table places coding execution in R2, but the requested product scope includes it. This plan makes the secure runner a gate for the first complete exam release. Proctoring is tiered: browser integrity signals for standard web exams, explicit permission-based media capture where policy requires it, and a managed secure-browser client for exams that require OS-level app/process controls.
+
+Interview workflows include interviewer/candidate scheduling, structured scorecards and rubrics, live session support, coding interview workspaces on the same isolated runner, feedback and candidate-level analytics. Optional recordings/transcripts and AI-assisted summaries or rubric-linked suggestions require explicit policy, notice, access and retention controls. AI can assist with evidence and workflow; it never autonomously makes hiring, admission, certification or misconduct decisions. See Phase 13 for the assignable interview stories.
 
 The supplied filename says v14, while the document body identifies itself as Architecture v13. This backlog uses the full supplied content, including later additions and the final role/app corrections.
 
@@ -24,13 +26,13 @@ Status: **Done** means the current repo already provides the stated outcome; **N
 ## Phase 0 — Local development and engineering base
 
 | ID | Story | Estimate | Depends on | Acceptance / handoff | Status |
-|---|---|---:|---|---|
+|---|---|---:|---|---|---|
 | DEV-01 | Local Node, pnpm, Docker-compatible engine and setup command | 2d | — | **Done.** Node 22, pnpm, Colima/Docker CLI, Compose, Postgres and Redis run locally; pnpm setup:local applies migrations and seeds repeatably. | [x] |
-| DEV-02 | Record architecture decisions and product boundaries | 2d | DEV-01 | **Next.** Add short ADRs for identity provider, queue/local emulator, object storage, first coding languages, identity vendor decision point, target deployment environment, and AI runtime/library/model policy (including when Python is appropriate). | [ ] |
-| DEV-03 | Workspace CI and affected-project builds | 2d | DEV-01 | CI installs from lockfile, generates Prisma Client, typechecks/builds affected workspaces, and fails clearly on broken migrations. | [ ] |
-| DEV-04 | Environment validation, structured logger and request IDs | 3d | DEV-01, DEV-02 | API/workers reject missing or invalid config at startup; each request/job has a correlation ID; logs omit secrets and answer/evidence payloads. | [ ] |
-| DEV-05 | Shared design system and accessible app shell | 3d | DEV-03 | Seven role portals and the public marketing app can use shared accessible navigation, forms and empty/error/loading states; public pages remain separate from role-protected routes. | [ ] |
-| DEV-06 | Local object storage, queue and email profile | 3d | DEV-02, DEV-04 | Compose can start MinIO, an SQS-compatible local queue and local mail catcher behind documented settings; cloud credentials are not needed locally. | [ ] |
+| DEV-02 | Record architecture decisions and product boundaries | 2d | DEV-01 | **Done.** Seven ADRs record OIDC/Keycloak boundary, SQS/ElasticMQ, S3-compatible storage, initial coding languages, biometric vendor decision gate, AWS deployment target, and AI runtime/model policy. | [x] |
+| DEV-03 | Workspace CI and affected-project builds | 2d | DEV-01 | **Done.** CI uses the frozen lockfile, generates Prisma Client, deploys migrations against a PostgreSQL service, then typechecks and builds every workspace so all affected projects are covered. | [x] |
+| DEV-04 | Environment validation, structured logger and request IDs | 3d | DEV-01, DEV-02 | **Done.** API validates required PostgreSQL/Redis and port/CORS config before listen; requests receive server-generated `X-Request-ID`; structured request logs contain method/path/status/duration only. Shared worker config and correlation helpers are ready for future worker entrypoints; payloads and secrets are excluded. | [x] |
+| DEV-05 | Shared design system and accessible app shell | 3d | DEV-03 | **Done.** Seven role portal shells and the public marketing app consume the shared accessible shell, navigation, fields and empty/error/loading components. Marketing remains a separate public app; portal authentication/authorization is a later IAM phase. | [x] |
+| DEV-06 | Local object storage, queue and email profile | 3d | DEV-02, DEV-04 | **Done.** Compose starts SeaweedFS with an S3 API, ElasticMQ SQS-compatible queues/DLQs and Mailpit behind local settings; cloud credentials are not needed. SeaweedFS is selected in ADR-0003 in place of the original MinIO wording. | [x] |
 
 ## Phase 1 — Identity, tenants and authorization
 
@@ -326,6 +328,21 @@ These remain in the requested full scope, after the secure core and first operat
 | EXT-05 | Marketplace/plugin ecosystem | 3d | API-02, INT-01, SEC-03 | Extensions use scoped APIs, signed events, review, versioning and revocation; no implicit tenant-wide access. | [ ] |
 | EXT-06 | Expanded liveness/identity and second-camera options | 3d | CAM-01, AI-04, PRIV-02, REV-04 | Vendor/model is reviewed for privacy/accessibility/validity; feature is opt-in, human-reviewable and reversible. | [ ] |
 
+## Phase 13 — Interviews and coding interviews
+
+Interviews are a first-class AptiVigil product workflow alongside exams. Build them on the shared identity, scheduling, realtime, evidence, code-runner and review foundations rather than creating a disconnected app. These stories are full product scope; dependencies determine when they can ship.
+
+| ID | Story | Estimate | Depends on | Acceptance / handoff | Status |
+|---|---|---:|---|---|
+| INTW-01 | Interview program, stages and reusable rubric | 3d | IAM-05, QST-01 | Organization staff configure interview types (structured, technical/coding, panel), stages, competencies, rubric versions and authorized interviewer roles; each change is scoped and audited. | [ ] |
+| INTW-02 | Candidate pipeline, scheduling and invitations | 3d | INTW-01, SCH-02, NOT-03 | Staff schedule one-to-one or panel sessions with time zone, availability, reschedule/cancel and secure candidate invitations; candidate receives clear instructions and accessibility/support options. | [ ] |
+| INTW-03 | Live interview room and session controls | 3d | INTW-02, RT-02, CAM-01 | Candidate and assigned interviewers join an authenticated audio/video session with connection checks, waiting room, panel roles, chat and host controls; media recording is off unless separately authorized and disclosed. | [ ] |
+| INTW-04 | Collaborative coding interview workspace | 3d | INTW-03, QST-04, ATT-04, RUN-04 | Interviewer and candidate collaborate in an isolated coding workspace with language/runtime limits, private tests, controlled run/submit, session timeline and interviewer notes; candidate code never runs in the API or realtime service. | [ ] |
+| INTW-05 | Interview scorecards and independent feedback | 3d | INTW-01, GRADE-01, REV-01 | Interviewers submit rubric-linked evidence and feedback independently before seeing others' scores; authorized lead can reconcile feedback with rationale; no automatic hire/reject recommendation is presented as a decision. | [ ] |
+| INTW-06 | Optional recording, transcript and retention controls | 3d | INTW-03, EVD-01, PRIV-02, NOT-01 | Organization policy controls recording/transcription; candidates receive notice and meaningful alternatives; access is least-privilege, audited, retention-bounded and deletable, with regional/language accuracy documented. | [ ] |
+| INTW-07 | AI-assisted interview notes and question support | 3d | INTW-05, INTW-06, AI-01, PRIV-02 | Optional AI can draft transcript summaries or rubric-linked evidence/question suggestions; every output links to source context, is labeled AI-generated, editable and reviewable; no autonomous ranking, admission or hiring decision. | [ ] |
+| INTW-08 | Interview analytics and candidate report | 3d | INTW-05, RPT-01, ANA-01 | Authorized organization staff view stage completion, interviewer feedback, rubric evidence and candidate outcomes; comparisons are configurable, explainable and access-controlled, with protected traits and irrelevant proctoring signals excluded from scoring. | [ ] |
+
 ## First four weeks — suggested solo sequence
 
 Assume about five focused workdays per week; reserve some time for setup/debugging and review. Do not start a second story just to fill a calendar slot.
@@ -339,11 +356,11 @@ Next are IAM-04 and IAM-05. Do not put real customer data flows ahead of tenant 
 
 ## Solo effort estimate
 
-The backlog contains 178 small stories: 177 remain after DEV-01, which is marked Done. Their estimates total about 506 focused developer-days remaining (508 days across all stories), or roughly 101 five-day developer-weeks (about 23 full-time months), before waiting on identity/payment/storage/LMS vendors, external penetration testing, accessibility review or customer policy decisions. Treat that as an order-of-magnitude planning number; after the first 8–10 accepted stories, recalibrate estimates from actual pace. A single developer should plan this as a multi-release product, not a short build sprint.
+The backlog contains 186 small stories: 185 remain after DEV-01, which is marked Done. Their estimates total about 530 focused developer-days remaining (532 days across all stories), or roughly 106 five-day developer-weeks (about 24 full-time months), before waiting on identity/payment/storage/LMS vendors, external penetration testing, accessibility review or customer policy decisions. Interview stories are included. Treat this as an order-of-magnitude planning number; after the first 8–10 accepted stories, recalibrate estimates from actual pace. A single developer should plan this as a multi-release product, not a short build sprint.
 
 ## Current repository baseline
 
-The repo has seven role-portal shells plus the public marketing app, a shared NestJS health/OpenAPI entrypoint, a starter Prisma schema and local Postgres/Redis setup. These are scaffolding, not accepted product stories. No central login/authorization, customer onboarding, plan catalog/checkout, exam API workflow, WebSocket gateway, evidence store, queue worker, code sandbox, AI model service or cloud deployment is complete yet. Re-check acceptance conditions before marking anything Done.
+The repo has seven role-portal shells plus the public marketing app, a shared NestJS health/OpenAPI entrypoint, a starter Prisma schema and local Postgres/Redis setup. These are scaffolding, not accepted product stories. No central login/authorization, customer onboarding, plan catalog/checkout, exam or interview API workflow, WebSocket gateway, evidence store, queue worker, code sandbox, AI model service or cloud deployment is complete yet. Re-check acceptance conditions before marking anything Done.
 
 ## Coverage map
 
@@ -353,6 +370,7 @@ The repo has seven role-portal shells plus the public marketing app, a shared Ne
 | Authentication, roles, tenancy, product/engineering access planes | IAM, SEC |
 | Question bank, authoring UI, exam lifecycle, scheduling, candidate runtime | QST, EXM, SCH, CAN, ATT, GRADE |
 | MCQ, essay, coding, isolated execution and code-similarity review | QST-02/03/04, ATT-02/03/04, RUN |
+| Structured/video interviews, coding interviews, scorecards, optional AI assistance and interview analytics | INTW-01–08, RT, EVD, RUN, REV, ANA |
 | Browser signals, event contract, realtime/live proctoring/modes/cameras/secure browser | POL, SDK, EVT, RT, PRO, MOD, CAM, WEB |
 | Room scan and identity/liveness workflows | IDV, EVD, REV |
 | AI, policy/risk, governance and human decision | POL, AI, PRO, REV |

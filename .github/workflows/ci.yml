@@ -6,15 +6,36 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: exam
+          POSTGRES_PASSWORD: exam_local_only
+          POSTGRES_DB: exam_platform
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U exam -d exam_platform"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://exam:exam_local_only@localhost:5432/exam_platform?schema=public
+      REDIS_URL: redis://localhost:6379
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.12.1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
+      - run: pnpm db:deploy
+      - run: pnpm typecheck
       - run: pnpm build
